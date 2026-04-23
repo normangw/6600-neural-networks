@@ -17,18 +17,14 @@ website:
       - href: report/report.qmd
         text: Report
       - text: "Technical details"
-        menu: 
-          - text: Data-collection
-            href: technical-details/data-collection/dataclean.ipynb 
-          - text: Data-cleaning
-            href: technical-details/data-cleaning/eda.ipynb 
+        menu:
+          - text: Data Cleaning
+            href: technical-details/data-cleaning/dataclean.ipynb
           - text: Exploratory Data Analysis
-            href: technical-details/eda/main.ipynb 
+            href: technical-details/eda/eda.ipynb
           - text: Neural Networks
-            href: technical-details/neural-networks/main.ipynb 
-          - text: Progress Log
-            href: technical-details/progress-log.qmd
-          - text: LLM usage Log
+            href: technical-details/neural-networks/main.ipynb
+          - text: LLM Usage Log
             href: technical-details/llm-usage-log.qmd
 
 format:
