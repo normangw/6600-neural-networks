@@ -29,13 +29,13 @@ from torch_geometric.nn import SAGEConv
 # ============================================================
 
 MARKET_FILES = [
-    ("data/T_DB1B_MARKET_1.csv", 2024, 3),
-    ("data/T_DB1B_MARKET_2.csv", 2024, 4),
-    ("data/T_DB1B_MARKET_3.csv", 2025, 1),
-    ("data/T_DB1B_MARKET_4.csv", 2025, 2),
+    ("data/rawdata/2024_q3.csv", 2024, 3),
+    ("data/rawdata/2024_q4.csv", 2024, 4),
+    ("data/rawdata/2025_q1.csv", 2025, 1),
+    ("data/rawdata/2025_q2.csv", 2025, 2),
 ]
 
-AIRPORTS_PATH = "data/airports.csv"
+AIRPORTS_PATH = "data/rawdata/airports.dat.txt"
 
 # Split options:
 # "random_70_10_20" = standard model comparison split
@@ -50,9 +50,9 @@ ROW_SAMPLE_FRAC = None
 # For debugging: 70_000 / 10_000 / 20_000
 # For stronger run: 140_000 / 20_000 / 40_000
 # For heavier run: 350_000 / 50_000 / 100_000
-MAX_TRAIN_NODES = 140_000
-MAX_VAL_NODES = 20_000
-MAX_TEST_NODES = 40_000
+MAX_TRAIN_NODES = 350_000
+MAX_VAL_NODES = 50_000
+MAX_TEST_NODES = 100_000
 
 RANDOM_STATE = 42
 
@@ -324,11 +324,17 @@ else:
     if not os.path.exists(AIRPORTS_PATH):
         raise FileNotFoundError(f"Missing airport file: {AIRPORTS_PATH}")
 
-    airports = pd.read_csv(AIRPORTS_PATH, low_memory=False)
+    airports = pd.read_csv(
+        AIRPORTS_PATH, header=None, low_memory=False,
+        names=["id","name","city","country","iata_code","icao",
+               "latitude_deg","longitude_deg","altitude","timezone",
+               "dst","tz_db","type","source"],
+    )
 
     coords = (
         airports[
             airports["iata_code"].notna()
+            & airports["iata_code"].ne("\\N")
             & airports["latitude_deg"].notna()
             & airports["longitude_deg"].notna()
         ][["iata_code", "latitude_deg", "longitude_deg"]]
