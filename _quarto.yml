@@ -9,7 +9,7 @@ project:
 
 website:
   title: "Neural Networks Project"
-  favicon: "assets/gu-logo.png"
+  favicon: "assets/logo.png"
   navbar:
     left:
       - href: report/report.qmd
