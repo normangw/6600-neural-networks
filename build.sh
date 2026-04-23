@@ -20,7 +20,7 @@ for i in $(find _site -type d); do chmod 755 $i; done
 printf 'Would you like to push to GU domains? (y/n)? '
 read answer
 if [ "$answer" != "${answer#[Yy]}" ] ;then 
-    rsync -alvr --delete _site/* normanwg@gtown03.reclaimhosting.com:/home/normanwg/public_html/airlines/
+    rsync -alvr --delete _site/* normanwg@gtown03.reclaimhosting.com:/home/normanwg/public_html/nnproject/
 else
     echo NOT PUSHING TO GU DOMAINS!
 fi
