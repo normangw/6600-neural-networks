@@ -71,7 +71,7 @@ This is a commercially implausible scenario that flags data errors or unreported
 
 The machine learning literature on airfare prediction is relatively sparse compared to the broader travel demand literature, and much of it focuses on the substantially easier task of predicting aggregated average fares rather than individual ticket prices.
 
-@wang_framework_2019 proposed one of the first systematic ML frameworks for fare prediction.
+Wang et al. proposed one of the first systematic ML frameworks for fare prediction [@wang_framework_2019].
 They combined the BTS DB1B and T-100 databases with macroeconomic covariates including fuel price, GDP, and unemployment.
 Using Random Forest regression on quarterly aggregated market-segment averages (one row per origin-destination-carrier-quarter), they achieved an adjusted R² of 0.869.
 This impressive number reflects the easier task of predicting route-level average fares rather than individual ticket prices.
@@ -80,22 +80,22 @@ Our paper works at the individual ticket level, where within-route variance domi
 We show that this within-route variance accounts for most of the unpredictability: the median within-route standard deviation is \$106, meaning the same route varies by approximately \$100 across carriers and quarters even after controlling for route characteristics.
 
 The industrial organization literature provides richer insight into the structural drivers of airline pricing.
-@aguirregabiria_dynamic_2010 model the US airline market as a dynamic entry-deterrence game using a computationally tractable structural estimation approach.
+Aguirregabiria and Magesan model the US airline market as a dynamic entry-deterrence game using a computationally tractable structural estimation approach [@aguirregabiria_dynamic_2010].
 They demonstrate that hub-and-spoke networks are supermodular in entry decisions: an airline's profitability from operating any given route increases when it simultaneously operates more routes through the same hub.
 This network complementarity creates barriers to entry that make hub carriers difficult to dislodge from monopoly positions on spoke routes.
 Their empirical analysis using DB1B data for the 55 largest US cities finds that Delta and Northwest maintained monopoly on far more city-pairs than Southwest, even controlling for route characteristics.
 This finding is consistent with strategic entry deterrence through hub dominance rather than cost advantages alone.
 For our modeling, this result motivates the graph-theoretic formulation of the airport network: a route from ORD to LAX exists in a fundamentally different competitive neighborhood than a route from a small regional airport, and this topological information should in principle be extractable through graph message passing.
 
-@ciliberto_collusive_2019 test for collusive pricing using DB1B data from 1993-2016, exploiting the multimarket contact structure of the US airline industry.
+Ciliberto et al. test for collusive pricing using DB1B data from 1993-2016, exploiting the multimarket contact structure of the US airline industry.
 Airlines compete simultaneously on hundreds of routes, and theory predicts that this multimarket contact can facilitate tacit collusion: each carrier refrains from aggressive pricing on routes where it is dominant, in exchange for the competitor refraining similarly.
-@ciliberto_collusive_2019 find that a 10% increase in multimarket contact between two carriers leads to a 3.5-5.3% decrease in pairwise fare differences within a market.
+Ciliberto et al. find that a 10% increase in multimarket contact between two carriers leads to a 3.5-5.3% decrease in pairwise fare differences within a market [@ciliberto_collusive_2019].
 This is a clear empirical signature of coordinated pricing behavior.
-They also find that code-share agreements (where two airlines sell tickets on each other's flights) reduce fare variability by approximately 1.5%.
+They also find that code-share agreements (where two airlines sell tickets on each other's flights) reduce fare variability by approximately 1.5% [@ciliberto_collusive_2019].
 These findings validate the use of route-level competition features such as the Herfindahl-Hirschman Index and carrier market share as predictors in our model.
 These features are not merely statistical controls; they capture structural market power dynamics that the economics literature has shown to causally influence pricing.
 
-@kerkemezos_price_2023 document an important path-dependence phenomenon in airline pricing.
+Kerkemezos et al. document an important path-dependence phenomenon in airline pricing [@kerkemezos_price_2023].
 Duopolies that emerged through competitive entry price significantly lower than so-called "quiet life" duopolies of the same structural characteristics that were never disrupted by entry.
 The key mechanism is that LCC entry forces legacy carriers to cut prices aggressively to deter further expansion, and this competitive pricing discipline persists even after the competitive pressure subsides.
 Their finding that LCC entry causes legacy incumbents to price below competitive market averages is directly operationalized in our `route_has_lcc` binary feature.
@@ -315,7 +315,7 @@ We model the US air travel system as a directed weighted multigraph G = (V, E) w
 
 The choice to model individual tickets as edges, rather than aggregating to route-carrier-quarter averages, is deliberate.
 Aggregation removes the within-route variance that constitutes the bulk of the prediction challenge.
-A model trained on aggregated data appears to perform well (as in @wang_framework_2019 with R² = 0.87) but is actually solving an easier problem.
+A model trained on aggregated data appears to perform well, as Wang et al. achieved R² = 0.87 on route-level averages [@wang_framework_2019], but is actually solving an easier problem.
 Our edge-level formulation preserves the full heterogeneity of individual ticket prices and is therefore a more honest test of predictive performance.
 
 **Node features** (5 total, computed from training data only, so no leakage from future quarters):
@@ -396,7 +396,7 @@ By constructing these features explicitly, we give the model supply-side cost in
 
 #### Competition Features
 
-Consistent with the theoretical and empirical predictions of @ciliberto_collusive_2019 and @kerkemezos_price_2023, we construct several route-level competition measures at the route-quarter level.
+Consistent with the theoretical and empirical predictions of Ciliberto et al. and Kerkemezos et al., we construct several route-level competition measures at the route-quarter level [@ciliberto_collusive_2019; @kerkemezos_price_2023].
 
 **`route_hhi`** is the Herfindahl-Hirschman Index of carrier market concentration, computed as $\sum_c s_c^2$ where $s_c$ is carrier c's share of passengers on the route-quarter.
 HHI near 1.0 indicates monopoly; near 0 indicates many equally-sized competitors.
@@ -409,7 +409,7 @@ This captures the within-HHI variation in individual carrier market power.
 
 **`route_has_lcc`** is a binary indicator for the presence of any LCC on the route.
 We classify Southwest, JetBlue, Spirit, Frontier, Allegiant, and Sun Country as LCCs for this purpose.
-@kerkemezos_price_2023 document that LCC entry causes legacy incumbents to price below competitive market averages, making LCC presence a strong predictor of fare suppression independent of the HHI level.
+Kerkemezos et al. document that LCC entry causes legacy incumbents to price below competitive market averages, making LCC presence a strong predictor of fare suppression independent of the HHI level [@kerkemezos_price_2023].
 
 #### AIC Feature Selection
 
@@ -476,6 +476,13 @@ In panel data econometrics terminology, this model is equivalent to a pooled OLS
 This is a competitive specification that would appear in any applied econometrics paper on airline pricing.
 Ridge+ serves as the primary baseline to determine whether deep learning adds value beyond what a well-specified linear model can achieve.
 
+Ridge explicitly encodes every origin airport and carrier as its own fixed effect via one-hot encoding.
+The model assigns a dedicated coefficient to each of the 397 origin airports and 20 carriers, estimated directly by closed-form linear regression.
+Even if Delta flights out of ORD appear only 1,500 times in the training sample, Ridge estimates that airport-carrier intercept precisely from those 1,500 rows without needing to generalize from other routes.
+
+The closed-form solution is w = (X^T X + alpha I)^{-1} X^T y, so fitting is a single matrix inversion regardless of how many OHE categories exist.
+The Ridge penalty (alpha = 1.0, tuned via cross-validation) shrinks all 424 coefficients toward zero, but because OHE indicators are sparse binary vectors, the regularization on any single airport coefficient is mild.
+
 #### Multilayer Perceptron (MLP)
 
 The MLP uses the same `ColumnTransformer` preprocessor as Ridge+, fit once on training data and applied to all sets.
@@ -487,6 +494,15 @@ Training uses Adam optimizer with learning rate 1e-3 and weight decay 1e-5.
 The learning rate scheduler reduces LR by factor 0.5 when validation loss has not improved for 20 consecutive epochs, with a minimum LR floor of 1e-5.
 Training stops early if validation loss has not improved for 100 consecutive epochs.
 The model that achieved the best validation loss across all epochs is selected for final evaluation.
+
+The MLP receives the same 424-feature vector but must learn all 397 airport price differences and 20 carrier price differences through gradient descent rather than closed-form estimation.
+Each ORIGIN_ORD indicator activates only on ORD flights, and in the 1% stratified sample, smaller airports appear in as few as 20-50 training rows.
+The gradient signal for those airport-specific weights is diluted across all 424 parameters being updated simultaneously, making it harder to learn a clean per-airport intercept.
+Ridge reads off the same average directly; the MLP has to converge to it iteratively with limited data.
+
+BatchNorm after each linear layer normalizes activations and partially compensates for the sparse OHE inputs.
+Without BatchNorm, the large magnitude difference between active OHE indicators (value 1) and the hundreds of inactive ones (value 0) would create poorly conditioned gradients.
+ReduceLROnPlateau cuts the learning rate by 0.5 whenever validation loss plateaus for 20 consecutive epochs, and early stopping at patience = 100 halts training before the model overfits the noisy per-airport weights from underrepresented airports.
 
 #### GNN - EdgeGNN (GINEConv)
 
@@ -504,6 +520,13 @@ Full architecture: NodeEncoder(5 to 256) - 2 x GINEConv(256) - EdgeDecoder(530 t
 The EdgeDecoder concatenates the source airport embedding, destination airport embedding, edge feature vector, and carrier embedding: `[src_emb(256), dst_emb(256), edge_attr(10), carrier_emb(8)]` = 530 dimensions.
 Carrier is encoded as an 8-dimensional learned embedding from `nn.Embedding(20, 8)`, separate from the graph node features.
 Gradient clipping at norm = 1.0 and early stopping with patience = 100 epochs are applied.
+
+The GNN must reconstruct all 397 airport price intercepts through graph message passing rather than dedicated OHE coefficients.
+After two rounds of GINEConv, ORD's embedding is a uniform average of messages from all 200 neighboring airports, blending high-fare regional routes, low-fare Southwest routes, and medium-fare legacy routes into one vector.
+That blended vector does not cleanly encode the ORD-specific price level, so the model has no efficient path to learn that ORD flights average roughly \$280 versus a small regional airport averaging \$210.
+
+With 2 layers, each node aggregates its 2-hop neighborhood, meaning ORD's final embedding is influenced by airports two connections away and the pooling problem compounds further.
+The EdgeDecoder concatenates source embedding (256), destination embedding (256), edge features (10), and carrier embedding (8) into a 530-dimensional input, but the noisy node embeddings make accurate prediction impossible regardless of decoder capacity.
 
 #### GAT - EdgeGAT (GATConv)
 
@@ -525,6 +548,15 @@ The critical difference from GINEConv: GATConv allows the model to differentiall
 For a hub airport like ORD, the model can learn to attend strongly to its high-traffic competitive routes while down-weighting small feeder connections.
 GINEConv, by contrast, aggregates all neighbors with equal weight, making it unable to distinguish informationally relevant neighbors from noise.
 
+The GAT's attention mechanism allows it to weight neighbors selectively when building each airport's embedding.
+When learning ORD's representation, the model attends strongly to routes with similar competitive structure (other major hub-to-hub routes with multiple legacy carriers) and downweights small regional connections with very different fare dynamics.
+This selective aggregation lets the GAT approximate the airport-level price intercept through a weighted average of comparable routes, which is why it matches Ridge+ performance while the uniform-aggregation GNN fails completely on the same data.
+
+The attention coefficient for neighbor u when updating v is a_vu = softmax(LeakyReLU(a^T [W h_v concat W h_u concat W_e e_vu])), where the edge features e_vu (including salary_cost_per_pax and route_hhi) are included in the attention computation via edge_dim = 10.
+Routes with high crew cost or high concentration therefore receive different attention weights than comparable routes with low cost or competitive pressure.
+The 4-head first layer runs four parallel attention-weighted aggregations, each head attending to different aspects of the neighborhood, then concatenates them before the single-head second layer processes the full 256-dimensional representation.
+Total trainable parameters are 292,385.
+
 #### ResidualGNN (MLP + Graph Correction)
 
 The ResidualGNN addresses the fundamental challenge of training a GNN on data where the signal ceiling is limited by missing features.
@@ -543,6 +575,16 @@ If the MLP residuals are noise, the gate will stay near its initialization.
 
 The correction network's EdgeDecoder receives the MLP logit as an additional input feature, making the concatenated representation 531 dimensions: `[src_emb(256), dst_emb(256), edge_attr(10), carrier_emb(8), mlp_pred(1)]`.
 This allows the correction network to know how confident the MLP was before deciding how large a correction to apply.
+
+The ResidualGNN sidesteps the fixed-effect reconstruction problem by delegating it to the frozen MLP.
+The MLP handles the 397 airport intercepts and 20 carrier intercepts through its OHE weights, even if those weights are noisier than Ridge's closed-form estimates.
+The GNN then receives the MLP's log-fare prediction as an extra input and only needs to correct systematic biases that the MLP missed using graph neighborhood context.
+In practice the gate stays near 0.18, meaning the correction contributes less than 20% of its potential magnitude and the test R² (0.202) falls below the MLP baseline (0.207).
+
+The gate is initialized at g = -1.5, giving sigmoid(-1.5) = 0.182.
+This conservative initialization ensures the correction starts near zero before the GNN has learned anything.
+If the gate were initialized at g = 0 (sigmoid = 0.5), the noisy early-training GNN correction would dominate and destabilize the MLP base prediction.
+The MLP logit is also appended to the EdgeDecoder input, expanding it from 530 to 531 dimensions, letting the correction network condition on the MLP's confidence and learn to apply smaller adjustments on routes where the MLP is already well-calibrated.
 
 ### Evaluation Metrics
 
@@ -669,7 +711,7 @@ These carrier fixed effects dominate all other predictors combined: the range of
 The LCC presence coefficient (-0.012) implies approximately a 1.2% reduction in legacy carrier fares when a LCC operates on the same route.
 On a \$300 legacy fare, this is approximately \$3.60 -- a modest but consistent effect across hundreds of thousands of route-observations.
 The route HHI coefficient (+0.005) implies that a route moving from duopoly (HHI = 0.5) to monopoly (HHI = 1.0) is associated with approximately 0.25% higher fares, all else equal.
-These competition effects are consistent in direction and magnitude with the structural estimates in @ciliberto_collusive_2019.
+These competition effects are consistent in direction and magnitude with the structural estimates in Ciliberto et al. [@ciliberto_collusive_2019].
 
 **The Q4 holiday premium is +5.7%** (coefficient +0.055, t = 31.2).
 This is the only quarter dummy with a large significant coefficient.
@@ -718,7 +760,7 @@ This is a positive result for graph learning: the GAT extracts useful informatio
 **Finding 2: Carrier identity and origin airport fixed effects dominate fare variance.**
 The 64% fare premium for Delta over Allegiant on comparable routes (exp(0.495) = 1.64) is far larger than the contribution of any continuous predictor.
 The range of carrier coefficients spans approximately \$125 on a base route.
-This is consistent with the oligopolistic market structure documented by @aguirregabiria_dynamic_2010, where brand loyalty, network benefits, and strategic entry deterrence allow legacy carriers to sustain large fare premia.
+This is consistent with the oligopolistic market structure documented by Aguirregabiria and Magesan, where brand loyalty, network effects, and strategic entry deterrence allow legacy carriers to sustain large fare premia [@aguirregabiria_dynamic_2010].
 
 **Finding 3: Attention is critical; uniform aggregation fails completely.**
 The standalone GNN with GINEConv (R² = -6.578) cannot reconstruct route fixed effects from graph topology alone through uniform message aggregation.
@@ -728,13 +770,13 @@ This is a sharp empirical distinction: the choice of GINEConv vs. GATConv is the
 **Finding 4: Route-level crew cost is the strongest continuous predictor.**
 `salary_cost_per_pax`, derived from T-100 aircraft-type data and BLS median wages, is selected first by AIC (step 1) and carries the largest OLS coefficient (0.140) among all numeric features.
 The economic mechanism is direct cost passthrough: routes operated by high-cost-per-seat regional jets have systemically higher fares, and this effect is detectable even after controlling for carrier identity, origin airport, and route competition.
-This finding validates the T-100 data integration strategy and confirms cost passthrough dynamics described in @saxon_airline_nodate.
+This finding validates the T-100 data integration strategy and confirms cost passthrough dynamics [@saxon_airline_nodate].
 
 **Finding 5: Competition suppresses fares in economically meaningful ways.**
 LCC presence reduces legacy carrier fares by approximately 1.2%.
 Route HHI increases fares, and total route passengers decrease fares.
-All three effects are directionally consistent with the predictions of @ciliberto_collusive_2019 and @kerkemezos_price_2023.
-The path-dependence findings of @kerkemezos_price_2023 suggest that `carrier_route_share` captures not just current market power but accumulated competitive history.
+All three effects are directionally consistent with the predictions of previous researchers [@ciliberto_collusive_2019; @kerkemezos_price_2023].
+The path-dependence findings of Kerkemezos et al. suggest that `carrier_route_share` captures not just current market power but accumulated competitive history [@kerkemezos_price_2023].
 
 **Finding 6: The ResidualGNN hypothesis was not validated.**
 The conservative gate stabilizes near 0.177 throughout all 300 training epochs.
@@ -772,6 +814,11 @@ Without booking timing, approximately 20-30% of fare variance is unrecoverable.
 On a major carrier, these three classes can differ by \$200-\$300 on the same flight.
 The lack of seat class information is a fundamental limitation of the DB1B data structure.
 
+**Approximated route-level cost features.** Both `fuel_cost_per_pax` and `salary_cost_per_pax` are approximations rather than observed costs.
+Fuel cost is estimated from hardcoded aircraft-type fuel burn rates applied to the dominant aircraft identified in T-100 segment data, but the T-100 records scheduled departures rather than actual fuel uplift.
+Crew salary cost uses BLS median wages and FAA minimum crew counts, whereas actual crew compensation varies substantially by carrier contract, seniority, and trip structure.
+These approximations introduce measurement error in the cost features that attenuates their estimated coefficients toward zero, meaning the true effect of route-level operating costs on fares is likely larger than our estimates suggest.
+
 **Ancillary fees excluded.** Post-deregulation, carriers increasingly shift revenue from base fares to ancillary fees for checked bags, carry-on bags, seat selection, and change fees.
 The DB1B fare reflects only the base ticket price.
 For ultra-low-cost carriers, the total trip cost including ancillaries may be 50-100% higher than the reported DB1B fare, creating systematic measurement error that biases competition effect estimates downward.
@@ -800,7 +847,7 @@ A temporal graph model, such as a Temporal Graph Network (TGN) or a graph with s
 The 2014-2016 oil price collapse and the 2020-2022 pandemic recovery offer natural experiments for identifying fuel cost passthrough and demand elasticity.
 
 **Hierarchical graph structure.** The current model treats each airport as a single node.
-A two-level graph incorporating both airport nodes and city-pair nodes could capture the metropolitan-area substitutability dynamics documented by @aguirregabiria_dynamic_2010, where ORD and MDW serve as imperfect substitutes for Chicago-area travelers and competitive pressure from one propagates to the other.
+A two-level graph incorporating both airport nodes and city-pair nodes could capture the metropolitan-area substitutability dynamics documented by Aguirregabiria and Magesan, where ORD and MDW serve as imperfect substitutes for Chicago-area travelers and competitive pressure from one propagates to the other [@aguirregabiria_dynamic_2010].
 
 ---
 
